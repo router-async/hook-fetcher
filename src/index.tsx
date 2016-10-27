@@ -27,7 +27,8 @@ function runPromises(items, props = {}) {
 }
 
 export interface Options {
-    errorHandler?: Function
+    errorHandler?: Function,
+    helpers?: Object
 }
 
 export function hookFetcher(options: Options = {}) {
@@ -36,28 +37,31 @@ export function hookFetcher(options: Options = {}) {
             ctx.set('fetcher', {
                 items: [],
                 deferred: [],
-                values: {}
+                values: null
             });
         },
-        resolve: async ({ ctx, params, result }) => {
+        resolve: async ({ ctx, params, result, silent }) => {
             // check if fetcher instance
             if (!result.isFetcher) {
+                // TODO: show name of component
                 console.warn('Component not wrapped with Fetcher');
                 return;
             }
             // set init values
             result.items.forEach(({ data }) => {
                 if (data && data.key && data.value) {
+                    if (ctx.get('fetcher').values === null) ctx.get('fetcher').values = {};
                     ctx.get('fetcher').values[data.key] = data.value;
                 }
             });
             // filter deferred items
             ctx.get('fetcher').deferred = result.items.filter(item => item.deferred);
             ctx.get('fetcher').items = result.items.filter(item => !item.deferred);
+            if (silent) return;
             // execute promises and return result
             try {
-                const values = await runPromises(ctx.get('fetcher').items, { params });
-                Object.assign(ctx.get('fetcher').values, values);
+                const values = await runPromises(ctx.get('fetcher').items, { params, helpers: options.helpers });
+                if (ctx.get('fetcher').values !== null) Object.assign(ctx.get('fetcher').values, values);
             } catch (error) {
                 if (options.errorHandler) {
                     options.errorHandler(error);
@@ -70,9 +74,10 @@ export function hookFetcher(options: Options = {}) {
         render: async ({ ctx, params }) => {
             if (ctx.get('fetcher').deferred.length) {
                 try {
-                    const values = await runPromises(ctx.get('fetcher').deferred, { params });
-                    Object.assign(ctx.get('fetcher').values, values);
-                    if (ctx.get('fetcher').callback) ctx.get('fetcher').callback(values);
+                    // TODO: deffered requests must resolve in parallel
+                    const values = await runPromises(ctx.get('fetcher').deferred, { params, helpers: options.helpers });
+                    if (ctx.get('fetcher').values !== null) Object.assign(ctx.get('fetcher').values, values);
+                    if (ctx.get('fetcher').values && ctx.get('fetcher').callback) ctx.get('fetcher').callback(values);
                 } catch (error) {
                     if (options.errorHandler) {
                         options.errorHandler(error);
@@ -86,11 +91,15 @@ export function hookFetcher(options: Options = {}) {
     }
 }
 
+export interface ComponentProps {
+    router: Object,
+    data?: Object
+}
 export interface Props {
     router: Object
 }
 export interface State {
-    data: Object
+    data?: Object
 }
 // Helps track hot reloading.
 // let nextVersion = 0;
@@ -105,17 +114,23 @@ export function fetcher(items) {
             constructor(props) {
                 super(props);
                 // this.version = version;
-                this.state = {
-                    data: props.router.ctx.get('fetcher').values
-                };
-                props.router.ctx.get('fetcher').callback = values => {
+                if (props.router.ctx.get('fetcher') && props.router.ctx.get('fetcher').values !== null) {
+                    this.state = {
+                        data: props.router.ctx.get('fetcher').values
+                    }
+                }
+                props.router.ctx.get('fetcher') && (props.router.ctx.get('fetcher').callback = values => {
                     this.setState({
                         data: values
                     })
-                }
+                })
             }
             render() {
-                return <WrappedComponent data={this.state.data} router={this.props.router} />
+                let props: ComponentProps = {
+                    router: this.props.router
+                };
+                if (this.state && this.state.data !== null) props.data = this.state.data;
+                return <WrappedComponent {...props} />
             }
         }
     }
