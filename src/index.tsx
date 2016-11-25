@@ -40,7 +40,7 @@ export function hookFetcher(options: Options = {}) {
                 values: null
             });
         },
-        resolve: async ({ ctx, params, result, silent }) => {
+        resolve: async ({ path, route, status, params, redirect, result, ctx, silent }) => {
             // check if fetcher instance
             if (!result.isFetcher) {
                 // TODO: show name of component
@@ -60,7 +60,7 @@ export function hookFetcher(options: Options = {}) {
             if (silent) return;
             // execute promises and return result
             try {
-                const values = await runPromises(ctx.get('fetcher').items, { params, helpers: options.helpers });
+                const values = await runPromises(ctx.get('fetcher').items, { path, route, status, params, redirect, result, ctx, silent, helpers: options.helpers });
                 if (ctx.get('fetcher').values !== null) Object.assign(ctx.get('fetcher').values, values);
             } catch (error) {
                 if (options.errorHandler) {
@@ -71,11 +71,11 @@ export function hookFetcher(options: Options = {}) {
                 }
             }
         },
-        render: async ({ ctx, params }) => {
+        render: async ({ path, route, status, params, redirect, result, ctx, silent }) => {
             if (ctx.get('fetcher').deferred.length) {
                 try {
                     // TODO: deffered requests must resolve in parallel
-                    const values = await runPromises(ctx.get('fetcher').deferred, { params, helpers: options.helpers });
+                    const values = await runPromises(ctx.get('fetcher').deferred, { path, route, status, params, redirect, result, ctx, silent, helpers: options.helpers });
                     if (ctx.get('fetcher').values !== null) Object.assign(ctx.get('fetcher').values, values);
                     if (ctx.get('fetcher').values && ctx.get('fetcher').callback) ctx.get('fetcher').callback(values);
                 } catch (error) {
