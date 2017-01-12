@@ -28,19 +28,23 @@ function runPromises(items, props = {}) {
 
 export interface Options {
     errorHandler?: Function,
-    helpers?: Object
+    helpers?: Object,
+    noFirstFetch?: boolean
 }
 
 export function hookFetcher(options: Options = {}) {
+    const { noFirstFetch, helpers } = options;
+    let counter = 0;
     return {
         start: ({ ctx }) => {
+            counter++;
             ctx.set('fetcher', {
                 items: [],
                 deferred: [],
                 values: null
             });
         },
-        resolve: async ({ path, route, status, params, redirect, result, ctx, silent }) => {
+        resolve: async ({ path, route, status, params, redirect, result, ctx }) => {
             // check if fetcher instance
             if (!result.isFetcher) {
                 // TODO: show name of component
@@ -57,10 +61,10 @@ export function hookFetcher(options: Options = {}) {
             // filter deferred items
             ctx.get('fetcher').deferred = result.items.filter(item => item.deferred);
             ctx.get('fetcher').items = result.items.filter(item => !item.deferred);
-            if (silent) return;
+            if (counter === 1 && noFirstFetch) return;
             // execute promises and return result
             try {
-                const values = await runPromises(ctx.get('fetcher').items, { path, route, status, params, redirect, result, ctx, silent, helpers: options.helpers });
+                const values = await runPromises(ctx.get('fetcher').items, { path, route, status, params, redirect, result, ctx, noFirstFetch, helpers });
                 if (ctx.get('fetcher').values !== null) Object.assign(ctx.get('fetcher').values, values);
             } catch (error) {
                 if (options.errorHandler) {
@@ -71,11 +75,11 @@ export function hookFetcher(options: Options = {}) {
                 }
             }
         },
-        render: async ({ path, route, status, params, redirect, result, ctx, silent }) => {
+        render: async ({ path, route, status, params, redirect, result, ctx }) => {
             if (ctx.get('fetcher').deferred.length) {
                 try {
                     // TODO: deffered requests must resolve in parallel
-                    const values = await runPromises(ctx.get('fetcher').deferred, { path, route, status, params, redirect, result, ctx, silent, helpers: options.helpers });
+                    const values = await runPromises(ctx.get('fetcher').deferred, { path, route, status, params, redirect, result, ctx, noFirstFetch, helpers });
                     if (ctx.get('fetcher').values !== null) Object.assign(ctx.get('fetcher').values, values);
                     if (ctx.get('fetcher').values && ctx.get('fetcher').callback) ctx.get('fetcher').callback(values);
                 } catch (error) {
