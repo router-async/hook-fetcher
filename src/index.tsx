@@ -29,11 +29,12 @@ function runPromises(items, props = {}) {
 export interface Options {
     errorHandler?: Function,
     helpers?: Object,
-    noFirstFetch?: boolean
+    noFirstFetch?: boolean,
+    server?: boolean
 }
 
 export function hookFetcher(options: Options = {}) {
-    const { noFirstFetch, helpers } = options;
+    const { noFirstFetch, helpers, server } = options;
     let counter = 0;
     return {
         start: ({ ctx }) => {
@@ -60,7 +61,11 @@ export function hookFetcher(options: Options = {}) {
             });
             // filter deferred items
             ctx.get('fetcher').deferred = result.items.filter(item => item.deferred);
-            ctx.get('fetcher').items = result.items.filter(item => !item.deferred);
+            if (server) {
+                ctx.get('fetcher').items = result.items.filter(item => !item.deferred && item.server);
+            } else {
+                ctx.get('fetcher').items = result.items.filter(item => !item.deferred && !item.server);
+            }
             if (counter === 1 && noFirstFetch) return;
             // execute promises and return result
             try {
