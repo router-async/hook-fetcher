@@ -62,7 +62,7 @@ export function hookFetcher(options: Options = {}) {
             // filter deferred items
             ctx.get('fetcher').deferred = result.items.filter(item => item.deferred);
             if (server) {
-                ctx.get('fetcher').items = result.items.filter(item => !item.deferred && item.server);
+                ctx.get('fetcher').items = result.items.filter(item => !item.deferred);
             } else {
                 ctx.get('fetcher').items = result.items.filter(item => !item.deferred && !item.server);
             }
