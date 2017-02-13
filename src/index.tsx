@@ -45,7 +45,7 @@ export function hookFetcher(options: Options = {}) {
                 values: null
             });
         },
-        resolve: async ({ path, route, status, params, redirect, result, ctx }) => {
+        resolve: async ({ path, location, route, status, params, redirect, result, ctx }) => {
             // check if fetcher instance
             if (!result.isFetcher) {
                 // TODO: show name of component
@@ -69,7 +69,7 @@ export function hookFetcher(options: Options = {}) {
             if (counter === 1 && noFirstFetch) return;
             // execute promises and return result
             try {
-                const values = await runPromises(ctx.get('fetcher').items, { path, route, status, params, redirect, result, ctx, noFirstFetch, helpers });
+                const values = await runPromises(ctx.get('fetcher').items, { path, location, route, status, params, redirect, result, ctx, noFirstFetch, helpers });
                 if (ctx.get('fetcher').values !== null) Object.assign(ctx.get('fetcher').values, values);
             } catch (error) {
                 if (options.errorHandler) {
@@ -80,11 +80,11 @@ export function hookFetcher(options: Options = {}) {
                 }
             }
         },
-        render: async ({ path, route, status, params, redirect, result, ctx }) => {
+        render: async ({ path, location, route, status, params, redirect, result, ctx }) => {
             if (ctx.get('fetcher').deferred.length) {
                 try {
                     // TODO: deffered requests must resolve in parallel
-                    const values = await runPromises(ctx.get('fetcher').deferred, { path, route, status, params, redirect, result, ctx, noFirstFetch, helpers });
+                    const values = await runPromises(ctx.get('fetcher').deferred, { path, location, route, status, params, redirect, result, ctx, noFirstFetch, helpers });
                     if (ctx.get('fetcher').values !== null) Object.assign(ctx.get('fetcher').values, values);
                     if (ctx.get('fetcher').values && ctx.get('fetcher').callback) ctx.get('fetcher').callback(values);
                 } catch (error) {
