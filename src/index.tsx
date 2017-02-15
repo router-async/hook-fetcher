@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { RouterError } from 'react-router-async';
 
 function runPromises(items, props = {}) {
     return new Promise((resolve, reject) => {
@@ -20,7 +21,7 @@ function runPromises(items, props = {}) {
                 } else {
                     checkAndResolve(error, item.data);
                 }
-                throw error;
+                // throw error;
             })
         });
     });
@@ -72,10 +73,9 @@ export function hookFetcher(options: Options = {}) {
                 const values = await runPromises(ctx.get('fetcher').items, { path, location, route, status, params, redirect, result, ctx, noFirstFetch, helpers });
                 if (ctx.get('fetcher').values !== null) Object.assign(ctx.get('fetcher').values, values);
             } catch (error) {
-                if (options.errorHandler) {
-                    options.errorHandler(error);
+                if (error instanceof RouterError) {
+                    return error;
                 } else {
-                    console.error('Hook fetcher resolve error', error);
                     throw error;
                 }
             }
@@ -88,10 +88,9 @@ export function hookFetcher(options: Options = {}) {
                     if (ctx.get('fetcher').values !== null) Object.assign(ctx.get('fetcher').values, values);
                     if (ctx.get('fetcher').values && ctx.get('fetcher').callback) ctx.get('fetcher').callback(values);
                 } catch (error) {
-                    if (options.errorHandler) {
-                        options.errorHandler(error);
+                    if (error instanceof RouterError) {
+                        return error;
                     } else {
-                        console.error('Hook fetcher render error', error);
                         throw error;
                     }
                 }
