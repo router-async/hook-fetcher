@@ -46,31 +46,30 @@ export function hookFetcher(options: Options = {}) {
                 values: null
             });
         },
-        resolve: async ({ path, location, route, status, params, redirect, result, ctx }) => {
-            // check if fetcher instance
-            if (!result.isFetcher) {
-                // TODO: show name of component
-                console.warn('Component not wrapped with Fetcher');
+        match: async ({ path, location, route, status, params, redirect, ctx }) => {
+            // check if fetcher exists
+            if (!Array.isArray(route.fetcher)) {
+                // console.warn('No fetcher items');
                 return;
             }
             // set init values
-            result.items.forEach(({ data }) => {
+            route.fetcher.forEach(({ data }) => {
                 if (data && data.key && data.value) {
                     if (ctx.get('fetcher').values === null) ctx.get('fetcher').values = {};
                     ctx.get('fetcher').values[data.key] = data.value;
                 }
             });
             // filter deferred items
-            ctx.get('fetcher').deferred = result.items.filter(item => item.deferred);
+            ctx.get('fetcher').deferred = route.fetcher.filter(item => item.deferred);
             if (server) {
-                ctx.get('fetcher').items = result.items.filter(item => !item.deferred);
+                ctx.get('fetcher').items = route.fetcher.filter(item => !item.deferred);
             } else {
-                ctx.get('fetcher').items = result.items.filter(item => !item.deferred && !item.server);
+                ctx.get('fetcher').items = route.fetcher.filter(item => !item.deferred && !item.server);
             }
             if (counter === 1 && noFirstFetch) return;
             // execute promises and return result
             try {
-                const values = await runPromises(ctx.get('fetcher').items, { path, location, route, status, params, redirect, result, ctx, noFirstFetch, helpers });
+                const values = await runPromises(ctx.get('fetcher').items, { path, location, route, status, params, redirect, ctx, noFirstFetch, helpers });
                 if (ctx.get('fetcher').values !== null) Object.assign(ctx.get('fetcher').values, values);
             } catch (error) {
                 if (error instanceof RouterError) {
@@ -94,51 +93,6 @@ export function hookFetcher(options: Options = {}) {
                         throw error;
                     }
                 }
-            }
-        }
-    }
-}
-
-export interface ComponentProps {
-    router: Object,
-    data?: Object
-}
-export interface Props {
-    router: Object
-}
-export interface State {
-    data?: Object
-}
-// Helps track hot reloading.
-// let nextVersion = 0;
-export function fetcher(items) {
-    // Helps track hot reloading.
-    // const version = nextVersion++;
-    return function wrapWithFetcherConnect(WrappedComponent) {
-        return class FetcherConnect extends React.Component<Props, State> {
-            // private version: number;
-            static isFetcher = true;
-            static items = items;
-            constructor(props) {
-                super(props);
-                // this.version = version;
-                if (props.router.ctx.get('fetcher') && props.router.ctx.get('fetcher').values !== null) {
-                    this.state = {
-                        data: props.router.ctx.get('fetcher').values
-                    }
-                }
-                props.router.ctx.get('fetcher') && (props.router.ctx.get('fetcher').callback = values => {
-                    this.setState({
-                        data: values
-                    })
-                })
-            }
-            render() {
-                let props: ComponentProps = {
-                    router: this.props.router
-                };
-                if (this.state && this.state.data !== null) props.data = this.state.data;
-                return <WrappedComponent {...props} />
             }
         }
     }
