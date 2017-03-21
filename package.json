@@ -26,6 +26,6 @@
   },
   "peerDependencies": {
     "react": "15.x.x",
-    "react-router-async": "0.5.x"
+    "react-router-async": "0.6.x"
   }
 }
