@@ -1,6 +1,6 @@
 {
   "name": "hook-fetcher",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "author": {
     "name": "Oleg Martynov",
     "email": "olegman.ru@gmail.com"
@@ -25,7 +25,7 @@
     "typescript": "^2.1.4"
   },
   "peerDependencies": {
-    "react": "16.x.x || 15.x.x",
+    "react": "15.x.x || 16.x.x",
     "react-router-async": "0.6.x"
   }
 }
