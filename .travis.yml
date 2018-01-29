@@ -3,7 +3,7 @@ sudo: false
 node_js:
   - 6
 
-before_install:
+after_install:
   - npm install -g npm-install-peers
   - npm-install-peers
 
