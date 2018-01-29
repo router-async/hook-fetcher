@@ -7,10 +7,6 @@ cache:
   directories:
     - node_modules
 
-before_install:
-  - npm install -g npm-install-peers
-  - npm-install-peers
-
 script:
   - yarn global add typings
   - typings install
