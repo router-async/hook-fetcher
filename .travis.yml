@@ -14,8 +14,6 @@ before_install:
 script:
   - yarn global add typings
   - typings install
-  - ls -la node_modules
-  - ls -la node_modules/.bin
   - yarn transpile
 
 deploy:
