@@ -12,9 +12,9 @@ before_install:
   - npm-install-peers
 
 script:
-  - npm i -g typings
+  - yarn global add typings
   - typings install
-  - npm run transpile
+  - yarn transpile
 
 deploy:
   skip_cleanup: true
