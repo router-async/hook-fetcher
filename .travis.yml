@@ -8,7 +8,7 @@ cache:
     - node_modules
     
 install:
-  - node -e "const peers = Object.entries(require('./package.json').peerDependencies || {}).map(d => d.join('@')).join(' '); console.log('peers', peers); if (peers.length) process.stdout.write('yarn add -P --no-lockfile ' + String(peers));" | sh
+  - node -e "const peers = Object.entries(require('./package.json').peerDependencies || {}).map(d => d.join('@')).join(' '); if (peers.length) process.stdout.write('yarn add -P --no-lockfile ' + String(peers));" | sh
   - yarn global add typings
   - typings install
 
