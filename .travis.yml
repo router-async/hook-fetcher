@@ -8,7 +8,7 @@ cache:
     - node_modules
 
 before_install:
-  - node -e "const peers = Object.entries(require('./package.json').peerDependencies || {}).map(d => d.join('@')).join(' '); if (peers.length) process.stdout.write('yarn add -P --no-lockfile ' + String(peers));" | sh
+  - node --harmony -e "const peers = Object.entries(require('./package.json').peerDependencies || {}).map(d => d.join('@')).join(' '); if (peers.length) process.stdout.write('yarn add -P --no-lockfile ' + String(peers));" | sh
 
 script:
   - yarn global add typings
