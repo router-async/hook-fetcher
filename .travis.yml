@@ -2,11 +2,17 @@ language: node_js
 sudo: false
 node_js:
   - 9
-  
-script:
+
+cache:
+  directories:
+    - node_modules
+    
+install:
   - node -e "const peers = Object.entries(require('./package.json').peerDependencies || {}).map(d => d.join('@')).join(' '); if (peers.length) process.stdout.write('yarn add -P --no-lockfile ' + String(peers));" | sh
   - yarn global add typings
   - typings install
+
+script:
   - yarn transpile
 
 deploy:
