@@ -9,7 +9,7 @@ cache:
     
 install:
   - yarn global add jq
-  - yarn add $(jq -r '.peerDependencies|keys|join(" ")' package.json)
+  - yarn add -P $(jq -r '.peerDependencies | to_entries | map(\"\\(.key)@\\(.value | tostring)\") | join(\" \")' package.json)
   - yarn global add typings
   - typings install
 
