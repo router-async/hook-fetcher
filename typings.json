@@ -1,8 +1,0 @@
-{
-  "globalDependencies": {
-    "es2015": "registry:env/es2015#1.0.0+20160526151700"
-  },
-  "dependencies": {
-    "react": "registry:npm/react#15.0.1+20160601175240"
-  }
-}
